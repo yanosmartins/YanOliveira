@@ -18,11 +18,11 @@ type Contato = {
 };
 
 export default function ContatosScreen() {
-  const [contatos, setContatos] = useState<Contato[]>([]);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
+  const [lista, setLista] = useState<any[]>([]);
 
-  async function listarContatos() {
+    async function listarContatos() {
     const { data, error } = await supabase
       .from('contatos')
       .select('*')
@@ -33,7 +33,7 @@ export default function ContatosScreen() {
       return;
     }
 
-    setContatos(data || []);
+    setLista(data || []);
   }
 
   async function adicionarContato() {
@@ -51,6 +51,38 @@ export default function ContatosScreen() {
     setNome('');
     setEmail('');
     listarContatos();
+  }
+
+  async function consumirApi() {
+    try {
+      const response = await fetch(
+        'https://jsonplaceholder.typicode.com/users'
+      );
+  
+      const data = await response.json();
+  
+      setLista(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function adicionarUsuarioDaApi(user: any) {
+    const { error } = await supabase
+      .from('contatos')
+      .insert([
+        {
+          nome: user.name,
+          email: user.email,
+        },
+      ]);
+  
+    if (error) {
+      console.log(error);
+      return;
+    }
+  
+    alert('Contato adicionado ao Supabase!');
   }
 
   return (
@@ -84,19 +116,44 @@ export default function ContatosScreen() {
         >
           <Text style={styles.buttonText}>Listar contatos</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#dc2626' }]}
+          onPress={consumirApi}
+        >
+  <Text style={styles.buttonText}>Consumir API</Text>
+</TouchableOpacity>
       </View>
 
       {/* LISTA */}
       <ScrollView style={{ marginTop: 20 }}>
-        {contatos.map((item) => (
-          <View key={item.id} style={styles.card}>
-            <Text style={styles.name}>{item.nome}</Text>
-            <Text style={styles.email}>{item.email}</Text>
-          </View>
-        ))}
-      </ScrollView>
+  {lista.map((item) => (
+    <View key={item.id} style={styles.card}>
+      <Text style={styles.name}>
+        {item.nome || item.name}
+      </Text>
 
+      <Text style={styles.email}>
+        {item.email}
+      </Text>
+
+      {item.name && (
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => adicionarUsuarioDaApi(item)}
+        >
+          <Text style={styles.buttonText}>
+            Adicionar ao Supabase
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
+  ))}
+</ScrollView>
+    </View>
+
+
+
   );
 }
 
@@ -159,4 +216,14 @@ const styles = StyleSheet.create({
   email: {
     color: '#666',
   },
+  addButton: {
+    backgroundColor: '#2563eb',
+    marginTop: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
 });
+
+
