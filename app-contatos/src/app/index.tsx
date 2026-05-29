@@ -1,4 +1,4 @@
-import ContatosScreen from '../screens/estapa3';
+import ContatosScreen from '../screens/etapa4';
 
 export default function Home() {
   return <ContatosScreen />;
